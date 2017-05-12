@@ -1,0 +1,2 @@
+vault_user: <your_login_username>
+vault_ssh_public_key: <your_public_key>

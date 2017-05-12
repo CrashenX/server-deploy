@@ -1,0 +1,28 @@
+- name: Ensure hardware virt is supported
+  shell: test "$(egrep -c '(vmx|vm)' /proc/cpuinfo)" -eq 1
+
+- name: Installs packages
+  apt: pkg={{ item }}
+       state=latest
+       update_cache=yes
+       cache_valid_time=300
+  with_items:
+    - bridge-utils
+    - libvirt0
+    - qemu-kvm
+
+- name: Get kubectl version response
+  uri: url=https://storage.googleapis.com/kubernetes-release/release/stable.txt
+       return_content=yes
+  register: response
+
+- name: set kubectl version fact
+  set_fact:
+      kubectl_version: "{{ response.content | replace('\n', '') }}"
+
+- name: Installs kubectl
+  get_url: url="https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+           dest=/usr/local/bin/kubectl
+           owner=root
+           group=root
+           mode=0755

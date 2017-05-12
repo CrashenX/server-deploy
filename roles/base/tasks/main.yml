@@ -1,0 +1,47 @@
+- name: Locks root password
+  command: passwd -l root
+
+- name: Installs packages
+  apt: pkg={{ item }}
+       state=latest
+       update_cache=yes
+       cache_valid_time=300
+  with_items:
+    - fail2ban
+    - netfilter-persistent
+    - openssh-server
+    - unattended-upgrades
+    - vim
+
+- name: Adds authorized key
+  authorized_key: user={{ user }}
+                  key="{{ ssh_public_key }}"
+
+- name: Disallows ssh password authentication
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^PasswordAuthentication"
+              line="PasswordAuthentication no"
+              state=present
+  notify: Restart ssh
+
+- name: Ensures iptables directory exists
+  file: path=/etc/iptables/
+        state=directory
+        owner=root
+        group=root
+        mode=755
+
+- name: Installs fw rules
+  copy: src={{ item }}
+        dest=/etc/iptables/{{ item }}
+        owner=root
+        group=root
+        mode=0644
+  with_items:
+    - rules.v4
+    - rules.v6
+
+- service: name=netfilter-persistent state=restarted
+
+- name: Restricts access to unprivileged user files
+  file: path=/home/{{ user }} state=directory recurse=yes mode="o-rwx"
