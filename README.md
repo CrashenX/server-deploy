@@ -11,7 +11,7 @@ Vagrant + Ansible to configure server
 
 ### Create your vault
 
-Create a `host_vars/default/vault` from `host_vars/default/template.vault`
+Create a `group_vars/all/vault` from `group_vars/all/template.vault`
 by replacing the bits in `<>` with your config values / secrets.
 
 #### Encrypt your secrets
