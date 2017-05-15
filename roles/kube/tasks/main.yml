@@ -1,5 +1,5 @@
 - name: Ensure hardware virt is supported
-  shell: test "$(egrep -c '(vmx|vm)' /proc/cpuinfo)" -eq 1
+  shell: test "$(egrep -c '(vmx|svm)' /proc/cpuinfo)" -eq 1
 
 - name: Installs packages
   apt: pkg={{ item }}
@@ -8,21 +8,66 @@
        cache_valid_time=300
   with_items:
     - bridge-utils
-    - libvirt0
+    - libvirt-daemon-system
     - qemu-kvm
 
-- name: Get kubectl version response
+- name: Add user to libvirt group
+  user:
+    name: "{{ user }}"
+    groups: libvirt
+    append: yes
+
+# TODO(jesse): Add checksum retrieval and verification for docker-machine
+# TODO(jesse): Download latest
+- name: Installs docker-machine
+  get_url: url=https://github.com/docker/machine/releases/download/v0.11.0/docker-machine-Linux-x86_64
+           dest=/usr/local/bin/docker-machine
+           owner=root
+           group=root
+           mode=0755
+
+# TODO(jesse): Add checksum retrieval and verification for docker-machine-driver-kvm
+# TODO(jesse): Download latest
+- name: Installs docker-machine-driver-kvm
+  get_url: url=https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu16.04
+           dest=/usr/local/bin/docker-machine-driver-kvm
+           owner=root
+           group=root
+           mode=0755
+
+- name: Gets kubectl version response
   uri: url=https://storage.googleapis.com/kubernetes-release/release/stable.txt
        return_content=yes
   register: response
 
-- name: set kubectl version fact
+- name: Sets kubectl version fact
   set_fact:
       kubectl_version: "{{ response.content | replace('\n', '') }}"
 
+# TODO(jesse): Add checksum retrieval and verification for kubectl
 - name: Installs kubectl
   get_url: url="https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
            dest=/usr/local/bin/kubectl
            owner=root
            group=root
            mode=0755
+
+- name: Gets minikube checksum
+  uri: url=https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64.sha256
+       return_content=yes
+  register: response
+
+- name: Sets minikube checksum fact
+  set_fact:
+      minikube_checksum: "sha256:{{ response.content | replace('\n', '') }}"
+
+- name: Installs minikube
+  get_url: url=https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+           dest=/usr/local/bin/minikube
+           checksum={{ minikube_checksum }}
+           owner=root
+           group=root
+           mode=0755
+
+- name: Set KVM as minkube hypervisor
+  command: minikube config set vm-driver kvm
