@@ -1,5 +1,5 @@
 - name: Ensure hardware virt is supported
-  shell: test "$(egrep -c '(vmx|svm)' /proc/cpuinfo)" -eq 1
+  shell: test "$(egrep -c '(vmx|svm)' /proc/cpuinfo)" -ge 1
 
 - name: Installs packages
   apt: pkg={{ item }}
@@ -44,10 +44,19 @@
   set_fact:
       kubectl_version: "{{ response.content | replace('\n', '') }}"
 
-# TODO(jesse): Add checksum retrieval and verification for kubectl
+- name: Gets kubectl checksum
+  uri: url="https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl.sha1"
+       return_content=yes
+  register: response
+
+- name: Sets kubectl checksum fact
+  set_fact:
+      kubectl_checksum: "sha1:{{ response.content | replace('\n', '') }}"
+
 - name: Installs kubectl
   get_url: url="https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
            dest=/usr/local/bin/kubectl
+           checksum={{ kubectl_checksum }}
            owner=root
            group=root
            mode=0755
@@ -60,6 +69,10 @@
 - name: Sets minikube checksum fact
   set_fact:
       minikube_checksum: "sha256:{{ response.content | replace('\n', '') }}"
+
+- name: Override minikube checksum fact - https://github.com/kubernetes/minikube/issues/1632
+  set_fact:
+      minikube_checksum: "sha256:f7447a37332879b934bf7fcae97327367a5b92d33d12ea24301c212892efe326"
 
 - name: Installs minikube
   get_url: url=https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
