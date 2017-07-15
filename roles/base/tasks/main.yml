@@ -7,11 +7,14 @@
        update_cache=yes
        cache_valid_time=300
   with_items:
+    - ansible
     - fail2ban
+    - lxc
     - netfilter-persistent
     - openssh-server
     - unattended-upgrades
     - vim
+    - virtualenv
 
 - name: Adds authorized key
   authorized_key: user={{ user }}
@@ -32,14 +35,14 @@
         mode=755
 
 - name: Installs fw rules
-  copy: src={{ item }}
-        dest=/etc/iptables/{{ item }}
+  template: src=rules.{{ item }}.j2
+        dest=/etc/iptables/rules.{{ item }}
         owner=root
         group=root
         mode=0644
   with_items:
-    - rules.v4
-    - rules.v6
+    - v4
+    - v6
 
 - service: name=netfilter-persistent state=restarted
 
