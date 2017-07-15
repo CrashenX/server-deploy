@@ -8,7 +8,7 @@
        cache_valid_time=300
   with_items:
     - bridge-utils
-    - libvirt-daemon-system
+    - libvirt-bin
     - qemu-kvm
 
 - name: Add user to libvirt group
@@ -16,6 +16,15 @@
     name: "{{ user }}"
     groups: libvirt
     append: yes
+  register: result
+  ignore_errors: yes
+
+- name: Add user to libvirtd group
+  user:
+    name: "{{ user }}"
+    groups: libvirtd
+    append: yes
+  when: result|failed
 
 # TODO(jesse): Add checksum retrieval and verification for docker-machine
 # TODO(jesse): Download latest
