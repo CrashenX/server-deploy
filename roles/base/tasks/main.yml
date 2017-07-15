@@ -46,5 +46,38 @@
 
 - service: name=netfilter-persistent state=restarted
 
+- name: Installs bashrc additions
+  copy: src=bashrc
+        dest={{ item.basedir }}/.bashrc_{{ item.user }}
+        owner={{ item.user }}
+        group={{ item.user }}
+        mode=0640
+  become: yes
+  become_user: "{{ item.user }}"
+  with_items:
+    - { user: 'root', basedir: '/root' }
+    - { user: "{{ user }}", basedir: "/home/{{ user }}" }
+
+- name: Configures bashrc to use additions
+  lineinfile: dest={{ item.basedir }}/.bashrc
+              line=". {{ item.basedir }}/.bashrc_{{ item.user }}"
+              regexp="^. {{ item.basedir }}/.bashrc_{{ item.user }}"
+  become: yes
+  become_user: "{{ item.user }}"
+  with_items:
+    - { user: 'root', basedir: '/root' }
+    - { user: "{{ user }}", basedir: "/home/{{ user }}" }
+
+- name: Sets vi mode for shells and repls
+  lineinfile: dest={{ item.basedir }}/.inputrc
+              line="set editing-mode vi"
+              regexp="^set editing-mode vi"
+              create=yes
+  become: yes
+  become_user: "{{ item.user }}"
+  with_items:
+    - { user: 'root', basedir: '/root' }
+    - { user: "{{ user }}", basedir: "/home/{{ user }}" }
+
 - name: Restricts access to unprivileged user files
   file: path=/home/{{ user }} state=directory recurse=yes mode="o-rwx"
