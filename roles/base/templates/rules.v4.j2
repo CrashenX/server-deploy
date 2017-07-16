@@ -23,6 +23,7 @@
 -A OUTPUT -m conntrack --ctstate NEW -p udp -m udp --dport 123 -j ACCEPT
 -A OUTPUT -m conntrack --ctstate NEW -p tcp -m tcp --dport 443 -j ACCEPT
 -A OUTPUT -m conntrack --ctstate NEW -m limit --limit 2/sec -p icmp -m icmp --icmp-type echo-request -j ACCEPT
+-A OUTPUT ! -o {{ ext_net_iface }} -p tcp -m tcp --dport 8443 -j ACCEPT
 -A OUTPUT ! -o {{ ext_net_iface }} -p udp -m udp --sport 67 --dport 68 -j ACCEPT
 -A OUTPUT ! -o {{ ext_net_iface }} -p udp -m udp --dport 5355 -j ACCEPT
 -A OUTPUT ! -o {{ ext_net_iface }} -p 2 -d 224.0.0.22 -j ACCEPT
