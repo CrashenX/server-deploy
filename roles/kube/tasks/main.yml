@@ -36,16 +36,6 @@
       docker_machine_version: "{{ (response.content | from_json).name }}"
 
 - name: Gets docker machine checksum
-  uri: url=https://github.com/docker/machine/releases/download/{{ docker_machine_version }}/sha256sums.txt
-       return_content=yes
-  register: response
-
-- name: Sets docker machine checksum fact
-  set_fact:
-      docker_machine_checksum: "sha256:{{ (response.content | replace().name }}"
-
-
-- name: Gets docker machine checksum
   uri: url=https://github.com/docker/machine/releases/download/{{ docker_machine_version }}/sha256sum.txt
        return_content=yes
   register: response
