@@ -2,3 +2,4 @@ vault_user: <your_login_username>
 vault_ssh_public_key: <your_public_key>
 vault_ipv4_home_net: <your_ipv4_home_network>
 vault_ipv6_home_net: <your_ipv6_home_network>
+vault_ext_net_iface: <servers_ext_net_iface>

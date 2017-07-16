@@ -1,19 +1,17 @@
 *filter
-:INPUT DROP [0:0]
+:INPUT ACCEPT [0:0]
 :FORWARD DROP [0:0]
-:OUTPUT DROP [0:0]
--N LOGGING
+:OUTPUT ACCEPT [0:0]
+-N in_drop
+-N out_drop
+-N no_rule
 -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
 -A INPUT -m conntrack --ctstate NEW -i lo -j ACCEPT
 -A INPUT -m conntrack --ctstate NEW -p tcp -m tcp --dport 22 -s {{ ipv6_home_net }} -j ACCEPT
 -A INPUT -m conntrack --ctstate NEW,ESTABLISHED -m limit --limit 2/sec -p ipv6-icmp -m icmp6 --icmpv6-type echo-request -j ACCEPT
 -A INPUT -m conntrack --ctstate ESTABLISHED -m limit --limit 2/sec -p ipv6-icmp -m icmp6 --icmpv6-type echo-reply -j ACCEPT
--A INPUT -i lxcbr0 -p udp -m udp --sport 67:68 --dport 67:68 -j ACCEPT
--A INPUT -i lxcbr0 -p udp -m udp --dport 53 -j ACCEPT
--A INPUT -i br-mgmt -j ACCEPT
--A FORWARD -i br-mgmt -j ACCEPT
--A FORWARD -i br-vlan -j ACCEPT
--A FORWARD -i br-vxlan -j ACCEPT
+-A INPUT -i {{ ext_net_iface }} -j in_drop
+-A INPUT -j no_rule
 -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
 -A OUTPUT -m conntrack --ctstate NEW -o lo -j ACCEPT
 -A OUTPUT -m conntrack --ctstate NEW -p tcp -m tcp --dport 22 -j ACCEPT
@@ -24,12 +22,12 @@
 -A OUTPUT -m conntrack --ctstate NEW -p tcp -m tcp --dport 443 -j ACCEPT
 -A OUTPUT -m conntrack --ctstate NEW,ESTABLISHED -m limit --limit 2/sec -p ipv6-icmp -m icmp6 --icmpv6-type echo-request -j ACCEPT
 -A OUTPUT -m conntrack --ctstate ESTABLISHED -m limit --limit 2/sec -p ipv6-icmp -m icmp6 --icmpv6-type echo-reply -j ACCEPT
--A OUTPUT -o lxcbr0 -p udp -m udp --sport 67:68 --dport 67:68 -j ACCEPT
--A OUTPUT -o br-mgmt -j ACCEPT
--A OUTPUT -o br-storage -j ACCEPT
--A OUTPUT -o br-vlan -j ACCEPT
--A OUTPUT -o br-vxlan -j ACCEPT
--A OUTPUT -j LOGGING
--A LOGGING -m limit --limit 2/min -j LOG --log-prefix "IP6Tables-Dropped: " --log-level 4
--A LOGGING -j DROP
+-A OUTPUT -o {{ ext_net_iface }} -j out_drop
+-A OUTPUT -j no_rule
+-A in_drop -m limit --limit 2/min -j LOG --log-prefix "IP6Tables-Dropped-In-Ext: " --log-level 4
+-A in_drop -j DROP
+-A out_drop -m limit --limit 2/min -j LOG --log-prefix "IP6Tables-Dropped-Out-Ext: " --log-level 4
+-A out_drop -j DROP
+-A no_rule -m limit --limit 2/min -j LOG --log-prefix "IP6Tables-Allowed-No-Rule: " --log-level 4
+-A no_rule -j ACCEPT
 COMMIT
