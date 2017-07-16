@@ -15,7 +15,6 @@
 -A {{ ext_net_iface }}_in -m conntrack --ctstate ESTABLISHED,RELATED -p udp -j ACCEPT
 # ICMP
 -A {{ ext_net_iface }}_in -p icmp -m icmp --icmp-type destination-unreachable -m limit --limit 2/sec -j ACCEPT
--A {{ ext_net_iface }}_in -p icmp -m icmp --icmp-type packet-too-big -m limit --limit 2/sec -j ACCEPT
 -A {{ ext_net_iface }}_in -p icmp -m icmp --icmp-type time-exceeded -m limit --limit 2/sec -j ACCEPT
 -A {{ ext_net_iface }}_in -p icmp -m icmp --icmp-type parameter-problem -m limit --limit 2/sec -j ACCEPT
 -A {{ ext_net_iface }}_in -p icmp -m icmp --icmp-type echo-request -m limit --limit 2/sec -j ACCEPT
@@ -41,9 +40,11 @@
 -A {{ ext_net_iface }}_out -m conntrack --ctstate NEW -p udp -m udp --dport 123 -j ACCEPT
 # ICMP
 -A {{ ext_net_iface }}_out -p icmp -m icmp --icmp-type destination-unreachable -m limit --limit 2/sec -j ACCEPT
--A {{ ext_net_iface }}_out -p icmp -m icmp --icmp-type packet-too-big -m limit --limit 2/sec -j ACCEPT
 -A {{ ext_net_iface }}_out -p icmp -m icmp --icmp-type time-exceeded -m limit --limit 2/sec -j ACCEPT
 -A {{ ext_net_iface }}_out -p icmp -m icmp --icmp-type parameter-problem -m limit --limit 2/sec -j ACCEPT
 -A {{ ext_net_iface }}_out -p icmp -m icmp --icmp-type echo-request -m limit --limit 2/sec -j ACCEPT
 -A {{ ext_net_iface }}_out -p icmp -m icmp --icmp-type echo-reply -m limit --limit 2/sec -j ACCEPT
+# Log and drop everything else
+-A {{ ext_net_iface }}_out -m limit --limit 5/min -j LOG --log-prefix "IPTables-{{ ext_net_iface }}-Out-Drop: " --log-level 4
+-A {{ ext_net_iface }}_out -j DROP
 COMMIT
