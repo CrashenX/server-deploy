@@ -26,20 +26,48 @@
     append: yes
   when: result|failed
 
-# TODO(jesse): Add checksum retrieval and verification for docker-machine
-# TODO(jesse): Download latest
+- name: Gets docker machine version
+  uri: url=https://api.github.com/repos/docker/machine/releases/latest
+       return_content=yes
+  register: response
+
+- name: Sets docker machine version fact
+  set_fact:
+      docker_machine_version: "{{ (response.content | from_json).name }}"
+
+- name: Gets docker machine checksum
+  uri: url=https://github.com/docker/machine/releases/download/{{ docker_machine_version }}/sha256sums.txt
+       return_content=yes
+  register: response
+
+- name: Sets docker machine checksum fact
+  set_fact:
+      docker_machine_checksum: "sha256:{{ (response.content | replace().name }}"
+
+
+- name: Gets docker machine checksum
+  uri: url=https://github.com/docker/machine/releases/download/{{ docker_machine_version }}/sha256sum.txt
+       return_content=yes
+  register: response
+
+- name: Sets docker machine checksum fact
+  set_fact:
+      docker_machine_checksum: "sha256:{{ response.content | regex_replace('(?s).*? ([^ ]*) *docker-machine-Linux-x86_64.*', '\\1') }}"
+
 - name: Installs docker-machine
-  get_url: url=https://github.com/docker/machine/releases/download/v0.11.0/docker-machine-Linux-x86_64
+  get_url: url=https://github.com/docker/machine/releases/download/{{ docker_machine_version }}/docker-machine-Linux-x86_64
            dest=/usr/local/bin/docker-machine
+           checksum={{ docker_machine_checksum }}
            owner=root
            group=root
            mode=0755
 
-# TODO(jesse): Add checksum retrieval and verification for docker-machine-driver-kvm
+# TODO(jesse): Add checksum retrieval
 # TODO(jesse): Download latest
 - name: Installs docker-machine-driver-kvm
   get_url: url=https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu16.04
            dest=/usr/local/bin/docker-machine-driver-kvm
+           checksum="md5:abc34ba69fbdc6c6aea3f59d99962310"
            owner=root
            group=root
            mode=0755
