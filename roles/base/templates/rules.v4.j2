@@ -13,7 +13,7 @@
 -A {{ ext_net_iface }}_in -m conntrack --ctstate NEW -p tcp -m tcp --dport 22 -s {{ ipv4_home_net }} -m limit --limit 10/min -j ACCEPT
 # UDP
 -A {{ ext_net_iface }}_in -m conntrack --ctstate ESTABLISHED,RELATED -p udp -j ACCEPT
--A {{ ext_net_iface }}_in -p udp -m multiport --sports 67:68 --dports 67:68 -s {{ ipv4_home_net }} -j ACCEPT
+-A {{ ext_net_iface }}_in -p udp --sport 67:68 --dport 67:68 -s {{ ipv4_home_net }} -j ACCEPT
 # ICMP
 -A {{ ext_net_iface }}_in -p icmp -m icmp --icmp-type destination-unreachable -m limit --limit 2/sec -j ACCEPT
 -A {{ ext_net_iface }}_in -p icmp -m icmp --icmp-type time-exceeded -m limit --limit 2/sec -j ACCEPT
@@ -39,7 +39,7 @@
 -A {{ ext_net_iface }}_out -m conntrack --ctstate ESTABLISHED,RELATED -p udp -j ACCEPT
 -A {{ ext_net_iface }}_out -m conntrack --ctstate NEW -p udp -m udp --dport 53 -j ACCEPT
 -A {{ ext_net_iface }}_out -m conntrack --ctstate NEW -p udp -m udp --dport 123 -j ACCEPT
--A {{ ext_net_iface }}_in -p udp -m multiport --sports 67:68 --dports 67:68 -d {{ ipv4_home_net }} -j ACCEPT
+-A {{ ext_net_iface }}_in -p udp --sport 67:68 --dport 67:68 -d {{ ipv4_home_net }} -j ACCEPT
 # ICMP
 -A {{ ext_net_iface }}_out -p icmp -m icmp --icmp-type destination-unreachable -m limit --limit 2/sec -j ACCEPT
 -A {{ ext_net_iface }}_out -p icmp -m icmp --icmp-type time-exceeded -m limit --limit 2/sec -j ACCEPT
