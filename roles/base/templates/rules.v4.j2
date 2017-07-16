@@ -10,7 +10,9 @@
 -A INPUT -m conntrack --ctstate NEW -p tcp -m tcp --dport 22 -s {{ ipv4_home_net }} -j ACCEPT
 -A INPUT -m conntrack --ctstate NEW,ESTABLISHED -m limit --limit 2/sec -p icmp -m icmp --icmp-type echo-request -j ACCEPT
 -A INPUT -m conntrack --ctstate ESTABLISHED -m limit --limit 2/sec -p icmp -m icmp --icmp-type echo-reply -j ACCEPT
--A INPUT -i ! {{ ext_net_iface }} -p udp -m udp --dport 53,67,5355 -j ACCEPT
+-A INPUT ! -i {{ ext_net_iface }} -p udp -m udp --dport 53 -j ACCEPT
+-A INPUT ! -i {{ ext_net_iface }} -p udp -m udp --sport 68 --dport 67 -j ACCEPT
+-A INPUT ! -i {{ ext_net_iface }} -p udp -m udp --dport 5355 -j ACCEPT
 -A INPUT -i {{ ext_net_iface }} -j in_drop
 -A INPUT -j no_rule
 -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
@@ -23,6 +25,7 @@
 -A OUTPUT -m conntrack --ctstate NEW -p tcp -m tcp --dport 443 -j ACCEPT
 -A OUTPUT -m conntrack --ctstate NEW,ESTABLISHED -m limit --limit 2/sec -p icmp -m icmp --icmp-type echo-request -j ACCEPT
 -A OUTPUT -m conntrack --ctstate ESTABLISHED -m limit --limit 2/sec -p icmp -m icmp --icmp-type echo-reply -j ACCEPT
+-A OUTPUT ! -i {{ ext_net_iface }} -p udp -m udp --sport 68 --dport 67 -j ACCEPT
 -A OUTPUT -o {{ ext_net_iface }} -j out_drop
 -A OUTPUT -j no_rule
 -A in_drop -m limit --limit 2/min -j LOG --log-prefix "IPTables-Dropped-In-Ext: " --log-level 4
