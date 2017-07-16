@@ -1,5 +1,4 @@
 user: "{{ vault_user }}"
 ssh_public_key: "{{ vault_ssh_public_key }}"
 ipv4_home_net: "{{ vault_ipv4_home_net }}"
-ipv6_home_net: "{{ vault_ipv6_home_net }}"
 ext_net_iface: "{{ vault_ext_net_iface }}"
