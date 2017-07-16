@@ -10,7 +10,7 @@
 -A INPUT -m conntrack --ctstate NEW -p tcp -m tcp --dport 22 -s {{ ipv6_home_net }} -j ACCEPT
 -A INPUT -m conntrack --ctstate NEW -m limit --limit 2/sec -p ipv6-icmp -m icmp6 --icmpv6-type echo-request -j ACCEPT
 -A INPUT ! -i {{ ext_net_iface }} -p udp -m udp --dport 5355 -j ACCEPT
--A INPUT ! -i {{ ext_net_iface }} -m limit --limit 5/sec -p ipv6-icmp -j ACCEPT
+-A INPUT ! -i {{ ext_net_iface }} -m limit --limit 2/sec --limit-burst 30 -p ipv6-icmp -j ACCEPT
 -A INPUT -i {{ ext_net_iface }} -j in_drop
 -A INPUT -j no_rule
 -A OUTPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
@@ -23,7 +23,7 @@
 -A OUTPUT -m conntrack --ctstate NEW -p tcp -m tcp --dport 443 -j ACCEPT
 -A OUTPUT -m conntrack --ctstate NEW -m limit --limit 2/sec -p ipv6-icmp -m icmp6 --icmpv6-type echo-request -j ACCEPT
 -A OUTPUT ! -o {{ ext_net_iface }} -p udp -m udp --dport 5355 -j ACCEPT
--A OUTPUT ! -o {{ ext_net_iface }} -m limit --limit 5/sec -p ipv6-icmp -j ACCEPT
+-A OUTPUT ! -o {{ ext_net_iface }} -m limit --limit 2/sec --limit-burst 30 -p ipv6-icmp -j ACCEPT
 -A OUTPUT -o {{ ext_net_iface }} -j out_drop
 -A OUTPUT -j no_rule
 -A in_drop -m limit --limit 2/min -j LOG --log-prefix "IP6Tables-Dropped-In-Ext: " --log-level 4
