@@ -21,3 +21,7 @@ by replacing the bits in `<>` with your config values / secrets.
 ### Setup your Server
 
     sudo ansible-playbook setup.yml --ask-vault-pass -i hosts
+
+### Install Kubernetes with Snap, Conjure-up, and Juju
+
+    https://kubernetes.io/docs/getting-started-guides/ubuntu/local/
